@@ -96,13 +96,13 @@ st.subheader('Data visualization')
 
 # Number of articles, number of customers and total volume change over the time
 """
-#### Change over time
+#### Patterns over time
 """
 
 all_variables = ['number of customers', 'number of articles', 'total volume']
 #all_variables = ['nr_customer', 'nr_article', 'total_volume']
 variables = st.multiselect(
-    "Select desired variables", options=all_variables, default=all_variables
+    "Select desired variables for the plot", options=all_variables, default=all_variables
 )
 
 dic_variables={'number of customers':'nr_customer', 'number of articles':'nr_article', 'total volume':'total_volume'}
@@ -133,7 +133,7 @@ for v in variables:
     )
 
 fig.update_layout(
-    title_text='Change over the time'  # title of plot
+    title_text='<b>Change over the time of customers, articles and volume<b>'  # title of plot
 )
     # Set y-axes titles
 fig.update_yaxes(title_text="number", secondary_y=False)
@@ -148,9 +148,9 @@ st.plotly_chart(fig)
 
 # Colors
 """
-#### Colors
+#### Color trends
 """
-X_best = st.slider('Best colors sold?', 0, 30, 10)
+X_best = st.slider('Select the number of best colors sold to be displayed', 0, 30, 10)
 best_colours = articles_transaction_color_aggr.groupby(
     'colour_group_name')['article_id'].sum().sort_values(ascending=False)
 best_colours = best_colours[:X_best]
@@ -163,20 +163,20 @@ articles_transaction_color_aggr = articles_transaction_color_aggr.groupby(
 
 fig = px.bar(articles_transaction_color_aggr, x="month_year", y="article_id", color="colour_group_name",
              labels={
-                 "month_year": "Month",
+                 "month_year": "Month and year",
                  "article_id": "Number of articles sold",
-                 "colour_group_name": "Colour"
+                 "colour_group_name": "Color"
              },
              category_orders={"colour_group_name": best_colours},
-             title="Number of articles sold per colour along the time")
+             title="<b>Number of articles sold per color along the time<b>")
 st.plotly_chart(fig)
 
 # Seasons
 """
-#### Seasons
+#### Seasonality
 """
 season_chosen = st.selectbox(
-    'Pick a season',
+    'Select a season to display information about',
     ('Spring', 'Summer', 'Autumn', 'Winter'))
 
 # LAYING OUT THE NEXT SECTION OF THE APP
@@ -185,7 +185,7 @@ row1_1, row1_2 = st.columns((1, 1))
 fig = px.pie(transactions_season.loc[transactions_season.season == season_chosen].sort_values(by='quantity', ascending=False).head(10),
              values='quantity',
              names='product_type_name',
-             title='<b>Top 10 Product<b>',
+             title='<b>Top 10 Product Categories<b>',
              color_discrete_sequence=px.colors.sequential.RdBu,
              hover_data=['product_type_name'],
              labels={'product_type_name': 'Product Type Name'},
@@ -197,7 +197,7 @@ with row1_1:
 fig = px.bar(transactions_season.loc[transactions_season.season == season_chosen].sort_values(by='quantity', ascending=False),
              y='quantity',
              x='product_type_name',
-             title='<b>Sale in Descending Order<b>',
+             title='<b>Sales in Descending Order<b>',
              color_discrete_sequence=px.colors.sequential.RdBu,
              hover_data=['product_type_name'],
              labels={'product_type_name': 'Product Type Name'},
@@ -208,7 +208,7 @@ with row1_2:
 
 fig = px.pie(customers_age.loc[customers_age.season == season_chosen].sort_values(by='quantity', ascending=False).head(10),
              values='quantity',
-             title='<b>Top Buyers<b>',
+             title='<b>Top Buyer Group Ages<b>',
              names='age_cat',
              color_discrete_sequence=px.colors.sequential.RdBu,
              hover_data=['age_cat'],
@@ -221,7 +221,7 @@ with row2_1:
 
 fig = px.bar(colors_season.loc[colors_season.season == season_chosen].sort_values(by='quantity', ascending=False),
              y='quantity',
-             title='<b>Most Favourite Colors in Ascending Order<b>',
+             title='<b>Most Favourite Colors in Descending Order<b>',
              x='perceived_colour_master_name',
              color_discrete_sequence=px.colors.sequential.RdBu,
              hover_data=['perceived_colour_master_name'],
@@ -240,7 +240,7 @@ df_agg = df_agg.reset_index(drop=True)
 df_agg = df_agg.head(5000)
 st.write(
     """    
-        Visualization of customer segments in 3 dimensions: Monetary, Recency and Frequency
+        Visualization of customer segments in **3 dimensions: Monetary, Recency and Frequency**
         """
 )
 
@@ -254,7 +254,7 @@ with row_clust_1:
 with row_clust_3:
     st.write(
         """    
-        We observe 5 different **clusters**:
+        Customers can be classified into 5 different **clusters**:
         - **Cluster 0**: Less recent but still frequent customers 
         - **Cluster 1**: Very recent and very frequent customers who spent a large amount of money in total : the most interesting customers
         - **Cluster 2**: Very frequent and recent customers 
@@ -266,13 +266,15 @@ with row_clust_3:
 # Product recommendation
 st.header('Product recommendation')
 
-"""
-We want to maximize the retention rate of the customers. To do that we follow this assumptions:
-- If the user is not recommended what it wants to buy it does not buy anything.
-- If the user does not buy anything it does not come back to the shop.
-- If the user makes a purchase, the user is retained.
+st.subheader("Retention rate")
 
-Kaggle provides us with the MAP@12 metric which is:
+"""
+The goal of the recommendation is to maximize the retention rate of the customers. To do so, the following assumptions are true:
+- If the user is not recommended what he/she wants to buy it, then the user does not buy any article.
+- If the user does not buy any article, he/she won't come back to the shop.
+- If the user makes a purchase, the user is considered as retained.
+
+Kaggle provides us with the **MAP@12 metric** which is defined as follows:
 """
 st.latex(r'''
     MAP@12 = \frac{1}{U} \sum_{u=1}^{U} \frac{1}{min(m, 12)} \sum_{k=1}^{min(m, 12)} P(k) \times rel(k)
@@ -281,19 +283,20 @@ st.latex(r'''
 """
 where 𝑈 is the number of customers, 𝑃(𝑘) is the precision at cutoff 𝑘, 𝑛 is the number predictions per customer, 𝑚 is the number of ground truth values per customer, and 𝑟𝑒𝑙(𝑘) is an indicator function equaling 1 if the item at rank 𝑘 is a relevant (correct) label, zero otherwise.
 
-For a given user, if the AP@12 is greater than 0, it means that it purchased at least an item, and it is 0 if it did not purchase. We can say, then, that the MAP@12 and the Retention Rate are positively correlated, so an increase in MAP@12 is an increase in retention rate.
+For a given user, if the MAP@12 is greater than 0, it means that he/she purchased at least one item, and if it is 0, then he/she did not purchase anything. We can say, then, that the **MAP@12 and the Retention Rate are positively correlated**, so an increase in MAP@12 is equivalent to an increase in retention rate.
 
-To compare the multiple models that we have built, we can use the MAP@12 metric.
+The different recommendations models built will be compared in terms of MAP@12 metric, providing us with a sense of which recommendation is related to a higher retention rate.
 """
 
+st.subheader("Recommendation generation")
 
 customer_id_input = st.text_input(
-    'Give us your Customer id', '8e0e166ba96a7d4e2fa83ebe7fed15d07c87011085831e4f221b5c2ce14faf93')
+    'Introduce the Customer ID to generate the recommendation', '8e0e166ba96a7d4e2fa83ebe7fed15d07c87011085831e4f221b5c2ce14faf93')
 
 # 51 : 8e0e166ba96a7d4e2fa83ebe7fed15d07c87011085831e4f221b5c2ce14faf93
 # 29 : 1bfde6cd02ea3321284a057dd05c9e6460ea855b217080b94c52cdceb32687ae
 
-N = st.slider('Number of items you want to be recommended', 0, 12, 12)
+N = st.slider('Introduce the number of items to recommend', 0, 12, 12)
 
 
 # Items bought by the customer
@@ -327,8 +330,8 @@ for element in items_bought:
 
 # Baseline Model
 st.subheader('Baseline Model')
-st.write("The first recommendation approach was to recommend to each users the items they have bought the most in the past. In the case the user had bought less than 12 items, we would recommend the client the top selling items overall.")
-st.write("This achieves a MAP@12 of 0.017")
+st.write("The first recommendation approach was to recommend to each users the **items they have bought the most in the past**. In the case the user had bought less than 12 items, we would recommend the client the top selling items overall.")
+st.write("This achieves a **MAP@12 of 0.017**")
 purchase_dict = pickle.load(open("data/purchase_dict.pkl", 'rb'))
 best_ever = pickle.load(open("data/best_ever.pkl", 'rb'))
 best_from_customer = purchase_dict.get(customer_id_input, {})
@@ -359,8 +362,8 @@ for element in pred_baseline:
 
 # Content-Based Algorithm
 st.subheader('Content-Based Algorithm')
-st.write("The second recommendation system is based on content filtering. The item recommendation to user A is based on the interests of a similar user B and on different features of the item. ")
-st.write("This achieves a MAP@12 of 0.000")
+st.write("The second recommendation system is based on content filtering. The item recommendation to user A is **based on the interests of a similar user** B **and on different features of the item.**")
+st.write("This achieves a **MAP@12 of 0.000**")
 content_df = pd.read_csv("data/content_df.csv")
 df_pred = content_df[content_df['customer_id']
                      == customer_id_input].reset_index(drop=True)
@@ -383,8 +386,8 @@ for element in pred_content_based:
 # Rule Based Algorithm
 st.subheader('Rule Based Algorithm')
 
-st.write("The third recommendation system combines two approaches: items previously purchased by the user and some of the most popular items.")
-st.write("This achieves a MAP@12 of 0.022")
+st.write("The third recommendation system combines two approaches: **items previously purchased** by the user **and some of the most popular items.**")
+st.write("This achieves a **MAP@12 of 0.022**")
 purchase_df = pd.read_csv("data/purchase_df.csv")
 text_file = open("data/general_pred_str.txt", "r")
 general_pred_str = text_file.read()

@@ -269,7 +269,7 @@ st.header('Product recommendation')
 st.subheader("Retention rate")
 
 """
-The goal of the recommendation is to maximize the retention rate of the customers. To do so, the following assumptions are true:
+The goal of the recommendation is to **maximize the retention rate** of the customers. In order to do so, the following assumptions are true:
 - If the user is not recommended what he/she wants to buy it, then the user does not buy any article.
 - If the user does not buy any article, he/she won't come back to the shop.
 - If the user makes a purchase, the user is considered as retained.
@@ -296,7 +296,7 @@ customer_id_input = st.text_input(
 # 51 : 8e0e166ba96a7d4e2fa83ebe7fed15d07c87011085831e4f221b5c2ce14faf93
 # 29 : 1bfde6cd02ea3321284a057dd05c9e6460ea855b217080b94c52cdceb32687ae
 
-N = st.slider('Introduce the number of items to recommend', 0, 12, 12)
+N = st.slider('Introduce the number of items to be recommended', 0, 12, 12)
 
 
 # Items bought by the customer
@@ -331,7 +331,7 @@ for element in items_bought:
 # Baseline Model
 st.subheader('Baseline Model')
 st.write("The first recommendation approach was to recommend to each users the **items they have bought the most in the past**. In the case the user had bought less than 12 items, we would recommend the client the top selling items overall.")
-st.write("This achieves a **MAP@12 of 0.017**")
+st.write("This achieves a **MAP@12 of 0.017.**")
 purchase_dict = pickle.load(open("data/purchase_dict.pkl", 'rb'))
 best_ever = pickle.load(open("data/best_ever.pkl", 'rb'))
 best_from_customer = purchase_dict.get(customer_id_input, {})
@@ -363,7 +363,7 @@ for element in pred_baseline:
 # Content-Based Algorithm
 st.subheader('Content-Based Algorithm')
 st.write("The second recommendation system is based on content filtering. The item recommendation to user A is **based on the interests of a similar user** B **and on different features of the item.**")
-st.write("This achieves a **MAP@12 of 0.000**")
+st.write("This achieves a **MAP@12 of 0.000.**")
 content_df = pd.read_csv("data/content_df.csv")
 df_pred = content_df[content_df['customer_id']
                      == customer_id_input].reset_index(drop=True)
@@ -387,7 +387,7 @@ for element in pred_content_based:
 st.subheader('Rule Based Algorithm')
 
 st.write("The third recommendation system combines two approaches: **items previously purchased** by the user **and some of the most popular items.**")
-st.write("This achieves a **MAP@12 of 0.022**")
+st.write("This achieves a **MAP@12 of 0.022.**")
 purchase_df = pd.read_csv("data/purchase_df.csv")
 text_file = open("data/general_pred_str.txt", "r")
 general_pred_str = text_file.read()
@@ -434,7 +434,7 @@ We have analysed the data and identified trends across seasons, categories and
 users in a way that can be explored thanks to the Dashboard.
 
 We have develped a baseline model to compare the performance of the different recommendation systems. 
-The baseline model is based on the most popular items and the items that have been purchased by the user.
+The **baseline model** is based on the most popular items and the items that have been purchased by the user.
 
 As a continuation, we explored **Collaborative Filtering** to identify trends across users without looking at specific data from the article.
 

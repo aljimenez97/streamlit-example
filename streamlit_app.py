@@ -143,6 +143,8 @@ if len(variables) == 1:
     fig.update_layout(
         yaxis_title=variables[0]
     )
+
+fig.update_layout(width=1400)
 st.plotly_chart(fig)
 
 
@@ -169,6 +171,8 @@ fig = px.bar(articles_transaction_color_aggr, x="month_year", y="article_id", co
              },
              category_orders={"colour_group_name": best_colours},
              title="<b>Number of articles sold per color along the time<b>")
+
+fig.update_layout(width=1400)
 st.plotly_chart(fig)
 
 # Seasons

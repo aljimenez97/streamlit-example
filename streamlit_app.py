@@ -144,7 +144,7 @@ if len(variables) == 1:
         yaxis_title=variables[0]
     )
 
-fig.update_layout(width=1400)
+fig.update_layout(width=1300)
 st.plotly_chart(fig)
 
 
@@ -172,7 +172,7 @@ fig = px.bar(articles_transaction_color_aggr, x="month_year", y="article_id", co
              category_orders={"colour_group_name": best_colours},
              title="<b>Number of articles sold per color along the time<b>")
 
-fig.update_layout(width=1400)
+fig.update_layout(width=1300)
 st.plotly_chart(fig)
 
 # Seasons
@@ -240,8 +240,8 @@ with row2_2:
 st.subheader('Customer Segmentation')
 df_agg = pd.read_csv("data/df_agg.csv")
 df_cluster = pd.read_csv("data/df_cluster.csv")
-df_agg = df_agg.reset_index(drop=True)
-df_agg = df_agg.head(5000)
+df_agg_viz = df_agg.head(5000)
+
 st.write(
     """    
         Visualization of customer segments in **3 dimensions: Monetary, Recency and Frequency**
@@ -251,7 +251,7 @@ st.write(
 row_clust_1, row_clust_2, row_clust_3 = st.columns((1, 1, 0.9))
 
 with row_clust_1:
-    fig = px.scatter_3d(df_agg, x='Recency', y='Monetary', z='Frequency',
+    fig = px.scatter_3d(df_agg_viz, x='Recency', y='Monetary', z='Frequency',
                         color='Cluster')
     st.plotly_chart(fig)
 
@@ -278,19 +278,7 @@ The goal of the recommendation is to **maximize the retention rate** of the cust
 - If the user does not buy any article, he/she won't come back to the shop.
 - If the user makes a purchase, the user is considered as retained.
 
-Kaggle provides us with the **MAP@12 metric** which is defined as follows:
-"""
-st.latex(r'''
-    MAP@12 = \frac{1}{U} \sum_{u=1}^{U} \frac{1}{min(m, 12)} \sum_{k=1}^{min(m, 12)} P(k) \times rel(k)
-     ''')
-
-"""
-where 𝑈 is the number of customers, 𝑃(𝑘) is the precision at cutoff 𝑘, 𝑛 is the number predictions per customer, 𝑚 is the number of ground truth values per customer, and 𝑟𝑒𝑙(𝑘) is an indicator function equaling 1 if the item at rank 𝑘 is a relevant (correct) label, zero otherwise.
-
-For a given user, if the MAP@12 is greater than 0, it means that he/she purchased at least one item, and if it is 0, then he/she did not purchase anything. We can say, then, that the **MAP@12 and the Retention Rate are positively correlated**, so an increase in MAP@12 is equivalent to an increase in retention rate.
-
-The different recommendations models built will be compared in terms of MAP@12 metric, providing us with a sense of which recommendation is related to a higher retention rate.
-"""
+The metric **mean average precision (MAP)** has been used for assessing the performance of the recommendation models. This metric is positively correlated with customer retention, meaning **higher values of the metric involve higher customer retention**."""
 
 st.subheader("Recommendation generation")
 
@@ -299,6 +287,9 @@ customer_id_input = st.text_input(
 
 # 51 : 8e0e166ba96a7d4e2fa83ebe7fed15d07c87011085831e4f221b5c2ce14faf93
 # 29 : 1bfde6cd02ea3321284a057dd05c9e6460ea855b217080b94c52cdceb32687ae
+
+cluster=df_agg[df_agg['customer_id']==customer_id_input]['Cluster'].values[0]
+st.write("The customer is part of the Cluster", cluster)
 
 N = st.slider('Introduce the number of items to be recommended', 0, 12, 12)
 
@@ -335,7 +326,7 @@ for element in items_bought:
 # Baseline Model
 st.subheader('Baseline Model')
 st.write("The first recommendation approach was to recommend to each users the **items they have bought the most in the past**. In the case the user had bought less than 12 items, we would recommend the client the top selling items overall.")
-st.write("This achieves a **MAP@12 of 0.017.**")
+#st.write("This achieves a **MAP@12 of 0.017.**")
 purchase_dict = pickle.load(open("data/purchase_dict.pkl", 'rb'))
 best_ever = pickle.load(open("data/best_ever.pkl", 'rb'))
 best_from_customer = purchase_dict.get(customer_id_input, {})
@@ -367,7 +358,7 @@ for element in pred_baseline:
 # Content-Based Algorithm
 st.subheader('Content-Based Algorithm')
 st.write("The second recommendation system is based on content filtering. The item recommendation to user A is **based on the interests of a similar user** B **and on different features of the item.**")
-st.write("This achieves a **MAP@12 of 0.000.**")
+#st.write("This achieves a **MAP@12 of 0.000.**")
 content_df = pd.read_csv("data/content_df.csv")
 df_pred = content_df[content_df['customer_id']
                      == customer_id_input].reset_index(drop=True)
@@ -388,10 +379,10 @@ for element in pred_content_based:
     i = i+1
 
 # Rule Based Algorithm
-st.subheader('Rule Based Algorithm')
+st.subheader('Rule-Based Algorithm')
 
 st.write("The third recommendation system combines two approaches: **items previously purchased** by the user **and some of the most popular items.**")
-st.write("This achieves a **MAP@12 of 0.022.**")
+#st.write("This achieves a **MAP@12 of 0.022.**")
 purchase_df = pd.read_csv("data/purchase_df.csv")
 text_file = open("data/general_pred_str.txt", "r")
 general_pred_str = text_file.read()
@@ -419,6 +410,18 @@ for element in pred_rule_based:
         st.image(image)
     i = i+1
 
+"""
+#### The impact of recommendations on customer retention
+
+Among the models studied, the rule-based model achieves the highest MAP, which would translate into a higher customer retention rate. For this reason, this is the model recommended for H&M to implement.
+
+| Model         | MAP   | Retention rate |
+|---------------|-------|----------------|
+| Baseline      | 0.017 | Medium            |
+| Content-Based | 0.005 | Lower         |
+| Rule-Based    | 0.022 | Higher           |
+"""
+
 st.subheader("Concept")
 """
 **Create a personalized experience for each customer** by providing 
@@ -431,23 +434,24 @@ st.image(image)
 st.subheader("Conclusion")
 
 """
-The huge amount of data that is provided by H&M has allowed us to explore 
-and extract multiple strategies to provide personalized recommendations.
 
-We have analysed the data and identified trends across seasons, categories and 
-users in a way that can be explored thanks to the Dashboard.
+##### Product Recommendations
+- Different algorithms could be used to recommend articles to customers. Yet, we would advise to use the **rule-based approach as it gives more accurate results compared to the others**. For instance, the content-based approach only recommends articles of the same type which does not give very good results. 
 
-We have develped a baseline model to compare the performance of the different recommendation systems. 
-The **baseline model** is based on the most popular items and the items that have been purchased by the user.
+##### Customer segmentation
+- The most interesting customers belong to Cluster 1. Not only did these customers spend a large amount of money in total, but they are also the newest and most frequent customers.
+- **We recommend focusing on customers from Cluster 1 as these customers are the most profitable**. A personalized marketing campaign targeted at these customers could be very effective for H&M to improve their bottom line.
 
-As a continuation, we explored **Collaborative Filtering** to identify trends across users without looking at specific data from the article.
+##### Seasonality
+- The distribution of group ages remains constant along the year, with **more than 55% of transactions performed by young people (19-34)**, followed by middle-age customers (35-50) that account for around 22% of transactions and old people (51+) who represent around 18% of transactions. 
+- The **favorite product types vary depending on the season**, with trousers, bikinis and shorts most demanded during Spring; dresses, vest tops and blouses during Summer; sweaters, tops and leggings during Autumn; and trousers, tops and leggings during Winter.
 
-Then, to take advantage of the article data, we explored **Content-Based** algorithms to identify trends across articles.
+##### Colors
+- **Black is the favorite color of customers during the two years of data analyzed**, representing around 50% of the items bought in each of the months. White is the second most popular color, although since January 2019 dark blue items have gained more popularity, surpassing white items in terms of number of transactions.
 
-With this exploration we reached the objectives we had set out for the project, achieving a good final performance and understanding of the data, 
-translated into a product that can be used by the H&M mobile app or H&M Club.
-
-After this exploration, we presented how the feature could be included into the H&M web app to provide personalized recommendations. 
-By using this proactive approach H&M can increase the user engagement and the user experience, improving loyalty and customer satisfaction.
+##### Patterns over time
+- The number of customers of the H&M database has fluctuated during the period analyzed (Sept 2018 - Sept 2020). **September and November have traditionally been the months with the highest peaks in the number of customers**, while the biggest declines have taken place in January. The trends of 2020 are different from the previous two years, due to the Covid-19 impact.
+- The trends in the number of articles are very similar to those in the number of customers, with peaks in September and November and drops in January. The amount of articles was significantly smaller in the period from April 2020 to June 2020, probably due to Covid-19 effects too.
+- Similarly, the volume of transactions was significantly higher during the months of September and November, as well as in April 2020.
 
 """
